@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM Member Tag Overlay</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      position: relative;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+      max-width: 90%;
+    }
+
+    #controls {
+      margin-top: 10px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      margin: 10px;
+    }
+
+    .acm-logo {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 100px; /* Adjust size as needed */
+    }
+  </style>
+</head>
+<body>
+  <!-- ACM Logo -->
+  <img src="LOGO_FINAL1.png" alt="ACM Logo" class="acm-logo">
+
+  <h1>Add ACM Member Tag to Your Photo</h1>
+  <p>Step 1: Upload your photo</p>
+  <input type="file" id="photoUpload" accept="image/*"><br>
+  <p>Step 2: Upload the ACM Tag file</p>
+  <input type="file" id="tagUpload" accept="image/png"><br>
+
+  <div id="controls">
+    <button id="addTag">Add Tag</button>
+    <button id="downloadPhoto">Download Your Photo</button>
+  </div>
+
+  <canvas id="photoCanvas"></canvas>
+
+  <script>
+    const photoInput = document.getElementById("photoUpload");
+    const tagInput = document.getElementById("tagUpload");
+    const addTagButton = document.getElementById("addTag");
+    const downloadButton = document.getElementById("downloadPhoto");
+    const canvas = document.getElementById("photoCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let uploadedImage = null;
+    let uploadedTag = null;
+
+    // Handle photo upload
+    photoInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            // Resize the uploaded image to fit within 800px width while maintaining aspect ratio
+            const maxWidth = 800;
+            const scaleFactor = maxWidth / img.width;
+
+            const newWidth = img.width * scaleFactor;
+            const newHeight = img.height * scaleFactor;
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+            uploadedImage = img;
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Handle tag upload
+    tagInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            uploadedTag = img;
+            alert("ACM Tag uploaded successfully!");
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Add ACM Member Tag
+    addTagButton.addEventListener("click", () => {
+      if (uploadedImage && uploadedTag) {
+        const tagWidth = canvas.width * 0.25; // Adjust size as 25% of the canvas width
+        const tagHeight = (uploadedTag.height / uploadedTag.width) * tagWidth; // Maintain aspect ratio
+        const xPosition = (canvas.width - tagWidth) / 2; // Center horizontally
+        const yPosition = canvas.height - tagHeight - 10; // Bottom center with 10px padding
+
+        ctx.drawImage(uploadedTag, xPosition, yPosition, tagWidth, tagHeight);
+      } else {
+        alert("Please upload both your photo and the ACM Tag file!");
+      }
+    });
+
+    // Download the tagged photo
+    downloadButton.addEventListener("click", () => {
+      if (uploadedImage) {
+        const link = document.createElement("a");
+        link.download = "ACM_Member_Tagged_Photo.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      } else {
+        alert("Please upload a photo and add the tag before downloading!");
+      }
+    });
+  </script>
+</body>
+</html>
